@@ -26,7 +26,7 @@ EventAction::~EventAction()
 {
 }
 
-void EventAction::BeginOfEventAction(const G4Event*)
+void EventAction::BeginOfEventAction(const G4Event* event)
 {
     theSteppingAction->Reset();
     myDetector->SetAEmission(0);
@@ -38,6 +38,7 @@ void EventAction::BeginOfEventAction(const G4Event*)
         return; // Handle the error accordingly
     }
     // Proceed with your logic using theSteppingAction
+    fEventID = event->GetEventID();
 }
 
 void EventAction::EndOfEventAction(const G4Event*)

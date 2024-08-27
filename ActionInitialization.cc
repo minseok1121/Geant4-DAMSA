@@ -3,10 +3,12 @@
 #include "EventAction.hh"
 #include "SteppingActionDMG4.hh"
 
-ActionInitialization::ActionInitialization(DetectorConstruction* detConstruction, DarkMatterPhysics* physics)
+ActionInitialization::ActionInitialization(DetectorConstruction* detConstruction, DarkMatterPhysics* physics, G4int clusterId, G4int procId)
     : G4VUserActionInitialization(),
       fDetConstruction(detConstruction),
-      fPhysics(physics)
+      fPhysics(physics),
+      fClusterId(clusterId),
+      fProcId(procId)
 {}
 
 ActionInitialization::~ActionInitialization()
@@ -22,5 +24,5 @@ void ActionInitialization::Build() const
     SetUserAction(new PrimaryGeneratorAction(fDetConstruction));
     EventAction* eventAction = new EventAction(fDetConstruction, fPhysics->GetDarkMatterPointer());
     SetUserAction(eventAction);
-    SetUserAction(new SteppingActionDMG4(fDetConstruction, eventAction));
+    SetUserAction(new SteppingActionDMG4(fDetConstruction, eventAction, fClusterId, fProcId));
 }

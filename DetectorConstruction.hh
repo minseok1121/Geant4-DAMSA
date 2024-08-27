@@ -3,6 +3,8 @@
 
 #include "globals.hh"
 #include "G4VUserDetectorConstruction.hh"
+#include "G4PVPlacement.hh"
+#include "G4Cache.hh"
 
 class G4Box;
 class G4Tubs;
@@ -10,6 +12,7 @@ class G4LogicalVolume;
 class G4VPhysicalVolume;
 class G4Material;
 class G4GenericMessenger;
+class PMTSD;
 
 using namespace std;
 
@@ -20,6 +23,8 @@ class DetectorConstruction : public G4VUserDetectorConstruction
 
     DetectorConstruction();
     ~DetectorConstruction();
+
+    void ConstructSDandField() override;
 
   public:
   
@@ -36,6 +41,8 @@ class DetectorConstruction : public G4VUserDetectorConstruction
 
     void SetAEmission(G4int AE) {AEmission = AE;}
     G4int GetAEmission() {return AEmission;}
+
+    std::vector<G4ThreeVector> GetPmtPositions() { return fPmtPositions; }
 
   private:
 
@@ -61,8 +68,13 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     G4Tubs*            solidTube;
     G4LogicalVolume*   logicTube;
     G4LogicalVolume*   logicBox;
+    G4LogicalVolume*   logicCsIBar;
+    G4LogicalVolume*   logicSiPm;
 
     G4int AEmission;
+
+    std::vector<G4ThreeVector> fPmtPositions;
+    G4Cache<PMTSD*> fPmt_SD;
 };
 
 #endif

@@ -38,9 +38,12 @@
 #include "G4TrackVector.hh"
 
 #include "G4SystemOfUnits.hh"
+#include "G4SDManager.hh"
+#include "PMTSD.hh"
 
-SteppingActionDMG4::SteppingActionDMG4(DetectorConstruction* myDC, EventAction* myEA)
-: eventAction(myEA), G4UserSteppingAction(), fInitialPosition(G4ThreeVector(0., 0., 0.))
+SteppingActionDMG4::SteppingActionDMG4(DetectorConstruction* myDC, EventAction* myEA, G4int clusterId, G4int procId)
+: eventAction(myEA), G4UserSteppingAction(), fInitialPosition(G4ThreeVector(0., 0., 0.)),
+  fClusterId(clusterId), fProcId(procId)
 {
   eventAction->SetSteppingAction(this);
 }
@@ -50,7 +53,7 @@ void SteppingActionDMG4::UserSteppingAction(const G4Step* step)
 {
   G4Track* track = step->GetTrack();
   G4int trackID = track->GetTrackID();
-  G4double globalTime_fs = step->GetPreStepPoint()->GetGlobalTime() / 1.e-15 * second ;
+  //G4double globalTime_ns = step->GetPreStepPoint()->GetGlobalTime() / 1.e-9 * second ;
   if(step->GetPreStepPoint()->GetGlobalTime() > 1*CLHEP::second) return;
   if(trackID==1) return;
   //if (!(step->GetPreStepPoint()->GetPosition().z() > -521*CLHEP::cm)) return;
@@ -60,7 +63,7 @@ void SteppingActionDMG4::UserSteppingAction(const G4Step* step)
 
   G4String particleName = track->GetParticleDefinition()->GetParticleName();
   G4VPhysicalVolume* currentVolume = track->GetVolume();
-
+/*
   if ( ((particleName == "pi0" || particleName == "DMParticleALP") && track->GetTrackStatus() == fStopAndKill) ) {
             const std::vector<const G4Track*>* secondaries = step->GetSecondaryInCurrentStep();
             for (size_t i = 0; i < secondaries->size(); ++i) {
@@ -76,17 +79,60 @@ void SteppingActionDMG4::UserSteppingAction(const G4Step* step)
 
                 // 딸 입자 정보를 파일에 출력
                 std::ofstream outFile("LittleDamsa_"+particleName+"_Secondary_"+(currentVolume->GetName())+"_"+secondaryParticleName+".txt", std::ios_base::app);
-    /*
+                
+    
                  // 시간만 높은 정밀도로 출력
     outFile << std::fixed << std::setprecision(15) << globalTime_fs << "     ";
 
     // 나머지 값들은 기본 정밀도로 출력
     outFile.unsetf(std::ios_base::fixed); // std::fixed 설정 해제
     outFile << std::setprecision(6); // 기본 정밀도로 설정
-    */
+    
                 outFile << Motherprocess << "     " << Energy << "     "
                         << position.x() << "     " << position.y() << "     " << position.z() << "     " 
                         << direction.x() << "     " << direction.y() << "     " << direction.z() << std::endl;
+                outFile.close();
+            }
+  }
+  
+  if (particleName == "DMParticleALP") {
+  G4StepStatus status = track->GetStep()->GetPostStepPoint()->GetStepStatus();
+            // If it's the first step, record the start time
+            if (status == fGeomBoundary || track->GetCurrentStepNumber() == 1) {
+              G4double Energy = step->GetPreStepPoint()->GetKineticEnergy();
+              G4ThreeVector position = step->GetPreStepPoint()->GetPosition();
+              G4ThreeVector direction = track->GetMomentumDirection();
+
+              G4String Motherprocess = "p";
+                  if (track->GetCreatorProcess() != nullptr) {
+                        Motherprocess = track->GetCreatorProcess()->GetProcessName();
+                      }
+              
+                G4double startTime = track->GetGlobalTime();
+                std::ofstream outFile("LittleDamsa_ALPLIFE.txt", std::ios_base::app);
+                outFile << "ALP created at time: " << startTime / ns << " ns" << std::endl;
+                outFile << trackID << (currentVolume->GetName()) << "     " << Motherprocess << "     " << Energy << "     "
+                        << position.x() << "     " << position.y() << "     " << position.z() << "     " << direction.x() << "     " << direction.y() << "     " << direction.z() << "     " << track->GetMomentum().mag()/track->GetTotalEnergy() << "     " << step->GetPreStepPoint()->GetGlobalTime() << "     " << eventAction->GetEventID() << std::endl;
+                outFile.close();
+            }
+
+            // Check if this is the last step before the particle decays
+            if (status == fStopAndKill || track->GetTrackStatus() == fStopAndKill) {
+              G4double Energy = step->GetPreStepPoint()->GetKineticEnergy();
+              G4ThreeVector position = step->GetPreStepPoint()->GetPosition();
+              G4ThreeVector direction = track->GetMomentumDirection();
+
+              G4String Motherprocess = "p";
+                  if (track->GetCreatorProcess() != nullptr) {
+                        Motherprocess = track->GetCreatorProcess()->GetProcessName();
+                      }
+              
+                G4double startTime = track->GetGlobalTime();
+                std::ofstream outFile("LittleDamsa_ALPLIFE.txt", std::ios_base::app);
+                G4double endTime = track->GetGlobalTime();
+                outFile << "ALP decayed at time: " << endTime / ns << " ns" << std::endl;
+                outFile << trackID << (currentVolume->GetName()) << "     " << Motherprocess << "     " << Energy << "     "
+                        << position.x() << "     " << position.y() << "     " << position.z() << "     " << direction.x() << "     " << direction.y() << "     " << direction.z() << "     " << track->GetMomentum().mag()/track->GetTotalEnergy() << "     " << step->GetPreStepPoint()->GetGlobalTime() << "     " << eventAction->GetEventID() << "     " << track->GetVelocity() << std::endl;
                 outFile.close();
             }
   }
@@ -131,7 +177,7 @@ void SteppingActionDMG4::UserSteppingAction(const G4Step* step)
 
   // 광자인 경우 처리
   /*
-    if (particleName == "gamma" && currentVolume->GetName() == "target") {
+    if (particleName == "gamma" && currentVolume->GetName() == "target" && step->GetPreStepPoint()->GetKineticEnergy() > 103) {
         G4StepPoint* preStepPoint = step->GetPreStepPoint();
         G4StepPoint* postStepPoint = step->GetPostStepPoint();
 
@@ -146,7 +192,64 @@ void SteppingActionDMG4::UserSteppingAction(const G4Step* step)
 
     }
     */
+    
 //return;
+G4OpBoundaryProcessStatus boundaryStatus = Undefined;
+  if(nullptr == fBoundary && track->GetParticleDefinition() == G4OpticalPhoton::OpticalPhotonDefinition())
+  {
+    G4ProcessManager* pm = track->GetParticleDefinition()->GetProcessManager();
+    G4int nprocesses = pm->GetProcessListLength();
+    G4ProcessVector* pv = pm->GetProcessList();
+    for(G4int i = 0; i < nprocesses; ++i)
+    { G4cout << (*pv)[i]->GetProcessName() << G4endl;
+      if(nullptr != (*pv)[i] && (*pv)[i]->GetProcessName() == "OpBoundary")
+      {
+        //G4cout << (*pv)[i]->GetProcessName() << G4endl;
+        fBoundary = dynamic_cast<G4OpBoundaryProcess*>((*pv)[i]);
+        break;
+      }
+    }
+  }
+
+  if(track->GetParticleDefinition() == G4OpticalPhoton::OpticalPhotonDefinition())
+  { 
+    if(nullptr != fBoundary) boundaryStatus = fBoundary->GetStatus();
+      G4cout << boundaryStatus << G4endl;
+
+    if(step->GetPostStepPoint()->GetStepStatus() == fGeomBoundary)
+    {
+      switch(boundaryStatus)
+      {
+        case Absorption:
+        G4cout << "Absorption," << boundaryStatus << G4endl;
+          break;
+        case Detection:  // Note, this assumes that the volume causing detection
+                         // is the photocathode because it is the only one with
+                         // non-zero efficiency
+        {G4cout << "Detection," << boundaryStatus << G4endl;
+          // Trigger sensitive detector manually since photon is
+          // absorbed but status was Detection
+          G4SDManager* SDman = G4SDManager::GetSDMpointer();
+          G4String sdName    = "/Det/pmtSD";
+          PMTSD* pmtSD    = (PMTSD*) SDman->FindSensitiveDetector(sdName);
+          if(pmtSD)
+            pmtSD->ProcessHits_boundary(step, nullptr);
+          break;
+        }
+        case FresnelReflection:
+        case TotalInternalReflection:
+        case LambertianReflection:
+        case LobeReflection:
+        case SpikeReflection:
+        case BackScattering:
+          break;
+        default:
+          break;
+      }
+    }
+  }
+
+
   if (!(step->IsFirstStepInVolume())) return;
   G4double Energy = step->GetPreStepPoint()->GetKineticEnergy();
   //if (!(Energy / CLHEP::MeV > 5)) return;
@@ -172,8 +275,8 @@ if (track->GetCreatorProcess() != nullptr) {
 //if(particleName == "DMParticleALP") {
   //G4cout << particleName << " production at E = " << Energy << G4endl;
    //if(!(particleName == "DMParticleALP" || particleName == "proton" || particleName == "neutron" || particleName == "gamma" || particleName == "e-" || particleName == "e+" || particleName == "pi+" || particleName == "pi-" || particleName == "pi0")) return;
-    //if (! (currentVolume->GetName() == "ECAL" || particleName == "DMParticleALP")) return;
-    if (! (particleName == "DMParticleALP")) return;
+    if (! (currentVolume->GetName() == "ECAL" || particleName == "DMParticleALP")) return;
+    //if (!(particleName == "DMParticleALP" || (particleName == "gamma" && currentVolume->GetName() == "ECAL"))) return;
         //G4double energyDeposition = step->GetTotalEnergyDeposit();
         //G4double zPosition = step->GetPreStepPoint()->GetPosition().z();
         //G4String processName = step->GetPostStepPoint()->GetProcessDefinedStep()->GetProcessName();
@@ -187,7 +290,7 @@ if (track->GetCreatorProcess() != nullptr) {
             }
         }
         */
-        std::ofstream outFile("LittleDamsa_"+(currentVolume->GetName())+"_"+particleName+".txt", std::ios_base::app);
+        std::ofstream outFile("LittleDamsa_"+std::to_string(fClusterId)+"_"+std::to_string(fProcId)+"_"+(currentVolume->GetName())+"_"+particleName+".txt", std::ios_base::app);
         /*
         outFile << Motherprocess << "     " << parentName << "     " << Energy << "     " << track->GetTotalEnergy() << "     "
                 << position.x() << "     " << position.y() << "     " << position.z() << "     " << direction.x() << "     " << direction.y() << "     " << direction.z() << std::endl;
@@ -201,7 +304,7 @@ if (track->GetCreatorProcess() != nullptr) {
     outFile << std::setprecision(6); // 기본 정밀도로 설정
     */
         outFile << Motherprocess << "     " << Energy << "     "
-                << position.x() << "     " << position.y() << "     " << position.z() << "     " << direction.x() << "     " << direction.y() << "     " << direction.z() << std::endl;
+                << position.x() << "     " << position.y() << "     " << position.z() << "     " << direction.x() << "     " << direction.y() << "     " << direction.z() << "     " << track->GetMomentum().mag()/track->GetTotalEnergy() << "     " << step->GetPreStepPoint()->GetGlobalTime() << "     " << eventAction->GetEventID() << "     " << track->GetVelocity() << std::endl;
       //outFile << particleName << " production at E = " << Energy << G4endl;
         outFile.close();
   }

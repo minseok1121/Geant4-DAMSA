@@ -19,7 +19,7 @@ public:
     void EndOfEventAction(const G4Event*);
     void SetSteppingAction(SteppingActionDMG4* action) { theSteppingAction = action; }
     DarkMatter* GetDarkMatterPointer() { return myDarkMatter; }
-    
+    G4int GetEventID() const { return fEventID; }
 
 private:
     DetectorConstruction* myDetector;
@@ -29,4 +29,5 @@ private:
     int NEmissions;    // Changed to 'int' from 'G4int'
 
     std::mutex eventMutex; // C++11 mutex for thread safety
+    G4int fEventID;
 };

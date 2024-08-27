@@ -1,0 +1,31 @@
+Universe = vanilla
+Log        = Little_geant4_$(epsilon)_$(ClusterId).log
+Output     = Little_geant4_$(epsilon)_$(ClusterId)_$(ProcId).out
+Error      = Little_geant4_$(epsilon)_$(ClusterId)_$(ProcId).err
+Should_Transfer_Files = Yes
+When_To_Transfer_Output = ON_EXIT
+
+Executable = CondorGeant4.sh
+Transfer_Executable = True
+Arguments = mkgeant4 $(epsilon) $(ClusterId) $(ProcId)
+Transfer_Input_Files = mkgeant4, cardg.g4mac
+
+notify_user = brianohmin@snu.ac.kr
+notification = Complete
+
+#request_cpus = 10
+request_cpus = 1
+stream_output = True
+stream_error = True
+
+# List of epsilon values
+# Replace these with the actual values you want to use
+#epsilon_values = 0.00000001 0.00000002 0.00000003 0.00000004 0.00000005 0.00000006 0.00000007 0.00000008 0.00000009 0.00000010
+epsilon_values = 0.00000004
+
+# Queue a job for each epsilon value
+queue epsilon in $(epsilon_values)
+
+
+# Run with 10 jobs simultaneously, 10^8 * 10 events will be created
+# 100 CPUs used!

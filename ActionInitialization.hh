@@ -8,7 +8,7 @@
 class ActionInitialization : public G4VUserActionInitialization
 {
 public:
-    ActionInitialization(DetectorConstruction* detConstruction, DarkMatterPhysics* physics);
+    ActionInitialization(DetectorConstruction* detConstruction, DarkMatterPhysics* physics, G4int clusterId, G4int procId);
     virtual ~ActionInitialization();
 
     virtual void BuildForMaster() const override;
@@ -17,6 +17,8 @@ public:
 private:
     DetectorConstruction* fDetConstruction;
     DarkMatterPhysics* fPhysics;
+    G4int fClusterId; 
+    G4int fProcId;
 };
 
 #endif
