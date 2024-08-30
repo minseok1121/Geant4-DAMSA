@@ -1,0 +1,86 @@
+Performing C SOURCE FILE Test CMAKE_HAVE_LIBC_PTHREAD failed with the following output:
+Change Dir: /data6/Users/mioh/DMG4/examples/GitBackup_DAMSA/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake -f Makefile cmTC_2749c/fast && /usr/bin/gmake  -f CMakeFiles/cmTC_2749c.dir/build.make CMakeFiles/cmTC_2749c.dir/build
+gmake[1]: Entering directory `/data6/Users/mioh/DMG4/examples/GitBackup_DAMSA/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_2749c.dir/src.c.o
+/cvmfs/sft.cern.ch/lcg/releases/gcc/8.3.0-cebb0/x86_64-centos7/bin/gcc -DCMAKE_HAVE_LIBC_PTHREAD   -o CMakeFiles/cmTC_2749c.dir/src.c.o -c /data6/Users/mioh/DMG4/examples/GitBackup_DAMSA/CMakeFiles/CMakeTmp/src.c
+Linking C executable cmTC_2749c
+/cvmfs/sft.cern.ch/lcg/releases/CMake/3.20.0-790a8/x86_64-centos7-gcc8-opt/bin/cmake -E cmake_link_script CMakeFiles/cmTC_2749c.dir/link.txt --verbose=1
+/cvmfs/sft.cern.ch/lcg/releases/gcc/8.3.0-cebb0/x86_64-centos7/bin/gcc CMakeFiles/cmTC_2749c.dir/src.c.o -o cmTC_2749c 
+CMakeFiles/cmTC_2749c.dir/src.c.o: In function `main':
+src.c:(.text+0x2d): undefined reference to `pthread_create'
+src.c:(.text+0x39): undefined reference to `pthread_detach'
+src.c:(.text+0x45): undefined reference to `pthread_cancel'
+src.c:(.text+0x56): undefined reference to `pthread_join'
+src.c:(.text+0x6a): undefined reference to `pthread_atfork'
+collect2: error: ld returned 1 exit status
+gmake[1]: *** [cmTC_2749c] Error 1
+gmake[1]: Leaving directory `/data6/Users/mioh/DMG4/examples/GitBackup_DAMSA/CMakeFiles/CMakeTmp'
+gmake: *** [cmTC_2749c/fast] Error 2
+
+
+Source file was:
+#include <pthread.h>
+
+static void* test_func(void* data)
+{
+  return data;
+}
+
+int main(void)
+{
+  pthread_t thread;
+  pthread_create(&thread, NULL, test_func, NULL);
+  pthread_detach(thread);
+  pthread_cancel(thread);
+  pthread_join(thread, NULL);
+  pthread_atfork(NULL, NULL, NULL);
+  pthread_exit(NULL);
+
+  return 0;
+}
+
+Performing C SOURCE FILE Test CMAKE_HAVE_LIBC_PTHREAD failed with the following output:
+Change Dir: /data6/Users/mioh/DMG4/examples/GitBackup_DAMSA/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake -f Makefile cmTC_f1e81/fast && /usr/bin/gmake  -f CMakeFiles/cmTC_f1e81.dir/build.make CMakeFiles/cmTC_f1e81.dir/build
+gmake[1]: Entering directory `/data6/Users/mioh/DMG4/examples/GitBackup_DAMSA/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_f1e81.dir/src.c.o
+/cvmfs/sft.cern.ch/lcg/releases/gcc/8.3.0-cebb0/x86_64-centos7/bin/gcc -DCMAKE_HAVE_LIBC_PTHREAD   -o CMakeFiles/cmTC_f1e81.dir/src.c.o -c /data6/Users/mioh/DMG4/examples/GitBackup_DAMSA/CMakeFiles/CMakeTmp/src.c
+Linking C executable cmTC_f1e81
+/cvmfs/sft.cern.ch/lcg/releases/CMake/3.20.0-790a8/x86_64-centos7-gcc8-opt/bin/cmake -E cmake_link_script CMakeFiles/cmTC_f1e81.dir/link.txt --verbose=1
+/cvmfs/sft.cern.ch/lcg/releases/gcc/8.3.0-cebb0/x86_64-centos7/bin/gcc CMakeFiles/cmTC_f1e81.dir/src.c.o -o cmTC_f1e81 
+CMakeFiles/cmTC_f1e81.dir/src.c.o: In function `main':
+src.c:(.text+0x2d): undefined reference to `pthread_create'
+src.c:(.text+0x39): undefined reference to `pthread_detach'
+src.c:(.text+0x45): undefined reference to `pthread_cancel'
+src.c:(.text+0x56): undefined reference to `pthread_join'
+src.c:(.text+0x6a): undefined reference to `pthread_atfork'
+collect2: error: ld returned 1 exit status
+gmake[1]: *** [cmTC_f1e81] Error 1
+gmake[1]: Leaving directory `/data6/Users/mioh/DMG4/examples/GitBackup_DAMSA/CMakeFiles/CMakeTmp'
+gmake: *** [cmTC_f1e81/fast] Error 2
+
+
+Source file was:
+#include <pthread.h>
+
+static void* test_func(void* data)
+{
+  return data;
+}
+
+int main(void)
+{
+  pthread_t thread;
+  pthread_create(&thread, NULL, test_func, NULL);
+  pthread_detach(thread);
+  pthread_cancel(thread);
+  pthread_join(thread, NULL);
+  pthread_atfork(NULL, NULL, NULL);
+  pthread_exit(NULL);
+
+  return 0;
+}
+

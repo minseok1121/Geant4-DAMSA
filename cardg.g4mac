@@ -1,0 +1,11 @@
+/run/initialize
+
+#/analysis/setFileName ms
+
+#/tracking/verbose 2
+
+#/random/setSeeds 51 1
+
+/run/beamOn 1
+
+exit

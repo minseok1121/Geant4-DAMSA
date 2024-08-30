@@ -81,16 +81,17 @@ G4bool PMTSD::ProcessHits_boundary(const G4Step* aStep, G4TouchableHistory*)
   // User replica number 1 since photocathode is a daughter volume
   // to the pmt which was replicated
   G4int pmtNumber =
-    aStep->GetPostStepPoint()->GetTouchable()->GetReplicaNumber(1);
-  G4cout << "pmtN : " << pmtNumber << G4endl;
-  G4cout << "pmtPos : " << (*fPMTPositionsX)[pmtNumber] << "     " << (*fPMTPositionsY)[pmtNumber] << "     " << (*fPMTPositionsZ)[pmtNumber] << G4endl;
+    aStep->GetPostStepPoint()->GetTouchable()->GetReplicaNumber();
+  //G4cout << "pmtN : " << pmtNumber << G4endl;
+  //G4cout << "pmtPos : " << (*fPMTPositionsX)[pmtNumber] << "     " << (*fPMTPositionsY)[pmtNumber] << "     " << (*fPMTPositionsZ)[pmtNumber] << G4endl;
   G4VPhysicalVolume* physVol =
-    aStep->GetPostStepPoint()->GetTouchable()->GetVolume(1);
+    aStep->GetPostStepPoint()->GetTouchable()->GetVolume();
+  //G4cout << "Postvolume: " << physVol->GetName() << G4endl;
 
   // Find the correct hit collection
   size_t n       = fPMTHitCollection->entries();
   PMTHit* hit = nullptr;
-  for(size_t i = 0; i < n; ++i)
+  for(size_t i = 0; i < n; i++)
   {
     if((*fPMTHitCollection)[i]->GetPMTNumber() == pmtNumber)
     {
@@ -109,5 +110,15 @@ G4bool PMTSD::ProcessHits_boundary(const G4Step* aStep, G4TouchableHistory*)
                    (*fPMTPositionsZ)[pmtNumber]);
   }
 
+    G4double hitTime = aStep->GetPostStepPoint()->GetGlobalTime();
+    G4double photonEnergy = aStep->GetPostStepPoint()->GetKineticEnergy();
+    hit->AddPhotonInfo(hitTime, photonEnergy);
+    
+  hit->IncPhotonCount();
+
+
+//G4cout << "PMTN : " << hit->GetPMTNumber() << G4endl;
+//G4cout << "PMTPos : " << hit->GetPMTPos() << G4endl;
+//G4cout << "PMTPhoton : " << hit->GetPhotonCount() << G4endl;
   return true;
 }

@@ -21,6 +21,7 @@ class SteppingActionDMG4 : public G4UserSteppingAction
     virtual void Reset();
 
     virtual void Finalize();
+    std::string GetBoundaryStatusString(G4OpBoundaryProcessStatus status);
 
   private:
 
@@ -28,6 +29,7 @@ class SteppingActionDMG4 : public G4UserSteppingAction
     G4ThreeVector fInitialPosition;
     G4int fClusterId;
     G4int fProcId;
+    G4int ms = 11;
 
     G4OpBoundaryProcess* fBoundary = nullptr;
 };

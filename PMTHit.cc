@@ -10,7 +10,7 @@
 G4ThreadLocal G4Allocator<PMTHit>* PMTHitAllocator = nullptr;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
+/*
 PMTHit::PMTHit(const PMTHit& right)
   : G4VHit()
 {
@@ -37,3 +37,4 @@ G4bool PMTHit::operator==(const PMTHit& right) const
 {
   return (fPmtNumber == right.fPmtNumber);
 }
+*/

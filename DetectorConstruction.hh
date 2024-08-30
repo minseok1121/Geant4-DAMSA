@@ -25,6 +25,7 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     ~DetectorConstruction();
 
     void ConstructSDandField() override;
+    void InitializeAnalysis();
 
   public:
   

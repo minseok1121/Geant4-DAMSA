@@ -31,6 +31,7 @@
 #include "PMTSD.hh"
 #include "G4OpticalSurface.hh"
 #include "G4LogicalSkinSurface.hh"
+#include "G4AnalysisManager.hh"
 
 
 DetectorConstruction::DetectorConstruction()
@@ -58,8 +59,8 @@ G4Material* CsI = new G4Material("CsI", 55., 259.809 * g / mole, 4.51 * g / cm3)
 G4MaterialPropertiesTable* CsIMPT = new G4MaterialPropertiesTable();
 
 // 광학 광자 에너지 범위 설정
-std::vector<G4double> photonEnergy = {1.2398 / 1.0 * eV, 1.2398 / 0.59 * eV, 1.2398 / 0.3 * eV}; 
-
+//std::vector<G4double> photonEnergy = {1.2398 / 1.0 * eV, 1.2398 / 0.59 * eV, 1.2398 / 0.3 * eV}; 
+std::vector<G4double> photonEnergy = {1.2 * eV, 2.0 * eV, 4.0 * eV}; 
 // 섬광체의 분광 특성 설정 (CsI(Tl) 값으로 조정)
 std::vector<G4double> scintillationComponent = {1.0, 1.0, 1.0}; // 임의의 값
 CsIMPT->AddProperty("SCINTILLATIONCOMPONENT1", photonEnergy, scintillationComponent);
@@ -89,15 +90,41 @@ CsI->SetMaterialPropertiesTable(CsIMPT);
 // Birks 상수 설정
 CsI->GetIonisation()->SetBirksConstant(0.126 * mm / MeV);
 
-//**Photocathode surface properties
-  auto photocath_mt = new G4MaterialPropertiesTable();
-  std::vector<G4double> photocath_EFF     = {1., 1., 1.};
-  photocath_mt->AddProperty("EFFICIENCY", photonEnergy, photocath_EFF);
-  std::vector<G4double> photocath_REFL = {0., 0., 0.};
-  photocath_mt->AddProperty("REFLECTIVITY", photonEnergy, photocath_REFL);
-  auto photocath_opsurf = new G4OpticalSurface(
-    "photocath_opsurf", glisur, polished, dielectric_dielectric);
-  photocath_opsurf->SetMaterialPropertiesTable(photocath_mt);
+// SiPM 물질 정의 (실리콘을 예로 사용)
+G4Material* SiPM = new G4Material("Silicon", 14., 28.0855 * g / mole, 2.33 * g / cm3);
+
+// SiPM 물질 속성 테이블 생성
+G4MaterialPropertiesTable* SiPMMPT = new G4MaterialPropertiesTable();
+
+// 굴절률 설정 (Si의 굴절률 예시)
+std::vector<G4double> refractiveIndexSiPM = {3.4, 3.4, 3.4}; // Si의 굴절률
+SiPMMPT->AddProperty("RINDEX", photonEnergy, refractiveIndexSiPM);
+
+// 흡수 길이 설정 (임의의 값, 필요시 조정)
+std::vector<G4double> absorptionLengthSiPM = {0.1 * cm, 0.1 * cm, 0.1 * cm}; 
+SiPMMPT->AddProperty("ABSLENGTH", photonEnergy, absorptionLengthSiPM);
+
+// SiPM 물질에 물질 속성 테이블 설정
+SiPM->SetMaterialPropertiesTable(SiPMMPT);
+
+// SiPM 광학 표면 정의
+G4OpticalSurface* SiPMOpticalSurface = new G4OpticalSurface(
+    "SiPMOpticalSurface", unified, polished, dielectric_metal);
+
+// SiPM 광학 표면의 속성 테이블 생성
+G4MaterialPropertiesTable* SiPMOpticalMPT = new G4MaterialPropertiesTable();
+
+// 효율성 설정 (모든 광자에 대해 100% 효율, 필요시 조정)
+std::vector<G4double> SiPMEfficiency = {1.0, 1.0, 1.0}; 
+SiPMOpticalMPT->AddProperty("EFFICIENCY", photonEnergy, SiPMEfficiency);
+
+// 반사율 설정 (임의의 값, 필요시 조정)
+std::vector<G4double> SiPMReflectivity = {0.0, 0.0, 0.0}; 
+SiPMOpticalMPT->AddProperty("REFLECTIVITY", photonEnergy, SiPMReflectivity);
+
+// SiPM 광학 표면에 속성 테이블 설정
+SiPMOpticalSurface->SetMaterialPropertiesTable(SiPMOpticalMPT);
+
 
   G4double detectorSizeX = 5.0*cm;
   G4double detectorSizeY = 5.0*cm;
@@ -267,8 +294,8 @@ G4double sipmX = barX;
 G4double sipmY = barY;
 
 G4Box* solidSiPm = new G4Box("SiPm", sipmX/2, sipmY/2, sipmZ/2);
-logicSiPm = new G4LogicalVolume(solidSiPm, nist->FindOrBuildMaterial("G4_Si"), "SiPmLV");
-new G4LogicalSkinSurface("photocath_surf", logicSiPm, photocath_opsurf);
+logicSiPm = new G4LogicalVolume(solidSiPm, SiPM, "SiPmLV");
+new G4LogicalSkinSurface("photocath_surf", logicSiPm, SiPMOpticalSurface);
 
 // Parameters for the grid and layers
 G4int gridX = 10;

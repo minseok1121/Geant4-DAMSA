@@ -2,6 +2,7 @@
 
 #include "G4UserEventAction.hh"
 #include <mutex> // C++11 mutex
+#include <vector>
 
 class DetectorConstruction;
 class SteppingActionDMG4;
@@ -30,4 +31,8 @@ private:
 
     std::mutex eventMutex; // C++11 mutex for thread safety
     G4int fEventID;
+
+    G4int fPMTCollID = -1;
+    G4int fHitCount = 0;
+    //std::vector<G4int> histIDs;
 };

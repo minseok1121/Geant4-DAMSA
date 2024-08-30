@@ -62,7 +62,8 @@ void SteppingActionDMG4::UserSteppingAction(const G4Step* step)
   //if (!(fabs(step->GetTrack()->GetMomentumDirection().y()) < 65*CLHEP::cm)) return;
 
   G4String particleName = track->GetParticleDefinition()->GetParticleName();
-  G4VPhysicalVolume* currentVolume = track->GetVolume();
+  G4VPhysicalVolume* currentVolume = step->GetPreStepPoint()->GetTouchable()->GetVolume();
+  //G4cout << currentVolume->GetName() << G4endl;
 /*
   if ( ((particleName == "pi0" || particleName == "DMParticleALP") && track->GetTrackStatus() == fStopAndKill) ) {
             const std::vector<const G4Track*>* secondaries = step->GetSecondaryInCurrentStep();
@@ -194,14 +195,16 @@ void SteppingActionDMG4::UserSteppingAction(const G4Step* step)
     */
     
 //return;
+//G4cout << ms << G4endl;
 G4OpBoundaryProcessStatus boundaryStatus = Undefined;
   if(nullptr == fBoundary && track->GetParticleDefinition() == G4OpticalPhoton::OpticalPhotonDefinition())
   {
+    //ms = 21;
     G4ProcessManager* pm = track->GetParticleDefinition()->GetProcessManager();
     G4int nprocesses = pm->GetProcessListLength();
     G4ProcessVector* pv = pm->GetProcessList();
     for(G4int i = 0; i < nprocesses; ++i)
-    { G4cout << (*pv)[i]->GetProcessName() << G4endl;
+    { //G4cout << (*pv)[i]->GetProcessName() << G4endl;
       if(nullptr != (*pv)[i] && (*pv)[i]->GetProcessName() == "OpBoundary")
       {
         //G4cout << (*pv)[i]->GetProcessName() << G4endl;
@@ -210,23 +213,24 @@ G4OpBoundaryProcessStatus boundaryStatus = Undefined;
       }
     }
   }
-
+//G4cout << ms << G4endl;
+//G4cout << "hitTime: " << step->GetPostStepPoint()->GetGlobalTime() << G4endl;
   if(track->GetParticleDefinition() == G4OpticalPhoton::OpticalPhotonDefinition())
   { 
     if(nullptr != fBoundary) boundaryStatus = fBoundary->GetStatus();
-      G4cout << boundaryStatus << G4endl;
+      //G4cout << GetBoundaryStatusString(boundaryStatus) << G4endl;
 
     if(step->GetPostStepPoint()->GetStepStatus() == fGeomBoundary)
     {
       switch(boundaryStatus)
       {
         case Absorption:
-        G4cout << "Absorption," << boundaryStatus << G4endl;
+        //G4cout << "Absorption," << boundaryStatus << G4endl;
           break;
         case Detection:  // Note, this assumes that the volume causing detection
                          // is the photocathode because it is the only one with
                          // non-zero efficiency
-        {G4cout << "Detection," << boundaryStatus << G4endl;
+        {//G4cout << "Detection," << boundaryStatus << G4endl;
           // Trigger sensitive detector manually since photon is
           // absorbed but status was Detection
           G4SDManager* SDman = G4SDManager::GetSDMpointer();
@@ -257,10 +261,6 @@ G4OpBoundaryProcessStatus boundaryStatus = Undefined;
   G4int stepNumber = track->GetCurrentStepNumber();
   G4ThreeVector direction = track->GetMomentumDirection();
 
-  //G4StepPoint* SPointPostStep = aStep->GetPostStepPoint();
-  //G4double ekin = aStep->GetTrack()->GetKineticEnergy()/GeV;
-  //G4double ekinprestep = SPointPreStep->GetKineticEnergy()/GeV;
-  //G4ParticleDefinition* theParticleDefinition = step->GetTrack()->GetDefinition();
   G4String Motherprocess = "p";
 if (track->GetCreatorProcess() != nullptr) {
       Motherprocess = track->GetCreatorProcess()->GetProcessName();
@@ -319,4 +319,41 @@ void SteppingActionDMG4::Reset()
 
 void SteppingActionDMG4::Finalize()
 {
+}
+
+std::string SteppingActionDMG4::GetBoundaryStatusString(G4OpBoundaryProcessStatus status) {
+    switch (status) {
+        case Undefined:
+            return "Undefined";
+        case Transmission:
+            return "Transmission";
+        case FresnelRefraction:
+            return "FresnelRefraction";
+        case FresnelReflection:
+            return "FresnelReflection";
+        case TotalInternalReflection:
+            return "TotalInternalReflection";
+        case LambertianReflection:
+            return "LambertianReflection";
+        case LobeReflection:
+            return "LobeReflection";
+        case SpikeReflection:
+            return "SpikeReflection";
+        case BackScattering:
+            return "BackScattering";
+        case Absorption:
+            return "Absorption";
+        case Detection:
+            return "Detection";
+        case NotAtBoundary:
+            return "NotAtBoundary";
+        case SameMaterial:
+            return "SameMaterial";
+        case StepTooSmall:
+            return "StepTooSmall";
+        case NoRINDEX:
+            return "NoRINDEX";
+        default:
+            return "Unknown";
+    }
 }

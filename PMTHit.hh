@@ -7,15 +7,20 @@
 #include "G4VHit.hh"
 #include "G4VPhysicalVolume.hh"
 
+struct PhotonInfo {
+    G4double time;
+    G4double energy;
+};
+
 class PMTHit : public G4VHit
 {
  public:
   PMTHit() = default;
-  PMTHit(const PMTHit& right);
+  //PMTHit(const PMTHit& right);
   ~PMTHit() override = default;
 
-  const PMTHit& operator=(const PMTHit& right);
-  G4bool operator==(const PMTHit& right) const;
+  //const PMTHit& operator=(const PMTHit& right);
+  //G4bool operator==(const PMTHit& right) const;
 
   inline void* operator new(size_t);
   inline void operator delete(void* aHit);
@@ -36,11 +41,21 @@ class PMTHit : public G4VHit
 
   inline G4ThreeVector GetPMTPos() { return fPos; }
 
+   inline void IncPhotonCount() { ++fPhotons; }
+    inline G4int GetPhotonCount() { return fPhotons; }
+
+  inline void AddPhotonInfo(G4double time, G4double energy) {
+        fPhotonInfos.push_back({time, energy});
+    }
+  inline const std::vector<PhotonInfo>& GetPhotonInfos() const { return fPhotonInfos; }
+
+
  private:
   G4int fPmtNumber = -1;
   G4int fPhotons = 0;
   G4ThreeVector fPos;
   G4VPhysicalVolume* fPhysVol = nullptr;
+  std::vector<PhotonInfo> fPhotonInfos;
 };
 
 typedef G4THitsCollection<PMTHit> PMTHitsCollection;

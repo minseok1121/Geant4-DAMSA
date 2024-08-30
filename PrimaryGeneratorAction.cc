@@ -21,7 +21,7 @@ PrimaryGeneratorAction::PrimaryGeneratorAction(DetectorConstruction* myDC)
   G4ParticleDefinition* electron = particleTable->FindParticle("e-");
   particleGun->SetParticleDefinition(electron);
   particleGun->SetParticleMomentumDirection(G4ThreeVector(0.,0.,1.));
-  particleGun->SetParticleEnergy(300*MeV);
+  particleGun->SetParticleEnergy(30000*MeV);
 }
 
 
