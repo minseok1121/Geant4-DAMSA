@@ -40,14 +40,14 @@ bool DarkMatterPhysics::DarkMatterPhysicsConfigure()
   DarkMatterParametersFactory* DMpar = DarkMatterParametersFactory::GetInstance();  
   
   DMpar->RegisterNewParam("BiasSigmaFactor0", 6.e9);
-  DMpar->RegisterNewParam("EThresh", 0.070405*GeV); // for sensitivity calculations invisible mode
+  DMpar->RegisterNewParam("EThresh", 0.050278*GeV); // for sensitivity calculations invisible mode
   //G4double EThresh = 18.; // for sensitivity calculations visible mode
   //G4double EThresh = 1.; // for shape studies
   //G4double EThresh = 2000.; // to turn off A emissions  
 
   //select particle type and details
         DMpar->RegisterNewParam("DMProcessType", 21.);
-  DMpar->RegisterNewParam("DMMass", 0.07*GeV);
+  DMpar->RegisterNewParam("DMMass", 0.05*GeV);
   //DMpar->RegisterNewParam("Epsilon", 0.00000006); // this is MeV^-1
 
   // Initialize for W

@@ -52,7 +52,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   G4Material* modulator_mat = DefinePolyurethane();
   G4Material* chamber_mat = nist->FindOrBuildMaterial("G4_Galactic");
 
- // CsI(Tl) 물질 정의
+ // CsI 물질 정의
 G4Material* CsI = new G4Material("CsI", 55., 259.809 * g / mole, 4.51 * g / cm3);
 
 // 물질 속성 테이블 생성
@@ -61,22 +61,22 @@ G4MaterialPropertiesTable* CsIMPT = new G4MaterialPropertiesTable();
 // 광학 광자 에너지 범위 설정
 //std::vector<G4double> photonEnergy = {1.2398 / 1.0 * eV, 1.2398 / 0.59 * eV, 1.2398 / 0.3 * eV}; 
 std::vector<G4double> photonEnergy = {1.2 * eV, 2.0 * eV, 4.0 * eV}; 
-// 섬광체의 분광 특성 설정 (CsI(Tl) 값으로 조정)
+// 섬광체의 분광 특성 설정 (CsI 값으로 조정)
 std::vector<G4double> scintillationComponent = {1.0, 1.0, 1.0}; // 임의의 값
 CsIMPT->AddProperty("SCINTILLATIONCOMPONENT1", photonEnergy, scintillationComponent);
 CsIMPT->AddProperty("SCINTILLATIONCOMPONENT2", photonEnergy, scintillationComponent); // 필요 시 조정
 
-// 굴절률 설정 (CsI(Tl) 값으로 조정)
+// 굴절률 설정 (CsI 값으로 조정)
 std::vector<G4double> refractiveIndex = {1.7576, 1.7873, 1.9790}; 
 CsIMPT->AddProperty("RINDEX", photonEnergy, refractiveIndex);
 
 // 흡수 길이 설정
-std::vector<G4double> absorptionLength = {100. * cm, 10. * cm, 1. * cm}; // 조정 필요
+std::vector<G4double> absorptionLength = {100. * cm, 100. * cm, 100. * cm}; // 조정 필요
 CsIMPT->AddProperty("ABSLENGTH", photonEnergy, absorptionLength);
 
 // 상수 속성 추가
-G4double scintYield = 54.0 / keV; // CsI(Tl) 섬광 수율
-G4double scintillationTimeConstant = 1000.0 * ns; // CsI(Tl) 빛 분해 시간
+G4double scintYield = 5000 / MeV; // CsI 섬광 수율
+G4double scintillationTimeConstant = 35.0 * ns; // CsI 빛 분해 시간
 CsIMPT->AddConstProperty("SCINTILLATIONYIELD", scintYield);
 CsIMPT->AddConstProperty("RESOLUTIONSCALE", 1.0); // 해상도 스케일 조정
 CsIMPT->AddConstProperty("SCINTILLATIONTIMECONSTANT1", scintillationTimeConstant);

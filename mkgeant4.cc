@@ -43,12 +43,15 @@ int main(int argc,char** argv) {
   G4int clusterId = std::stoi(argv[2]);
   G4int procId = std::stoi(argv[3]);
 
+CLHEP::HepRandom::setTheSeed(time(NULL));
+
   // Run manager
   auto runManager =
     G4RunManagerFactory::CreateRunManager(G4RunManagerType::MT);
   
   G4int numCores = G4Threading::G4GetNumberOfCores();
-    runManager->SetNumberOfThreads(numCores);
+    runManager->SetNumberOfThreads(10);
+    //runManager->SetNumberOfThreads(1);
 
     std::cout << "Number of workers (threads): " << runManager->GetNumberOfThreads() << std::endl;
 //G4MTRunManager* runManager = new G4MTRunManager;

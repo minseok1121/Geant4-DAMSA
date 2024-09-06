@@ -6,14 +6,21 @@
 #include "G4ThreeVector.hh"
 #include "G4OpBoundaryProcess.hh"
 
+#include <mutex>
+#include "G4Threading.hh"
+#include <fstream>
+#include "G4Accumulable.hh"
+#include "G4AccumulableManager.hh"
+
 class DetectorConstruction;
 class EventAction;
+class RunAction;
 
 
 class SteppingActionDMG4 : public G4UserSteppingAction
 {
   public:
-    SteppingActionDMG4(DetectorConstruction* myDC, EventAction* myEA, G4int clusterId, G4int procId);
+    SteppingActionDMG4(DetectorConstruction* myDC, EventAction* myEA, G4int clusterId, G4int procId, RunAction* runAction);
     virtual ~SteppingActionDMG4(){};
 
     virtual void UserSteppingAction(const G4Step*);
@@ -32,4 +39,5 @@ class SteppingActionDMG4 : public G4UserSteppingAction
     G4int ms = 11;
 
     G4OpBoundaryProcess* fBoundary = nullptr;
+    RunAction* fRunAction;
 };

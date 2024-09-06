@@ -2,8 +2,7 @@
 #include "G4ios.hh"
 
 #include "SteppingActionDMG4.hh"
-//#include "RunAction.hh"
-//#include "RunActionDMG4.hh"
+#include "RunAction.hh"
 #include "EventAction.hh"
 #include "DetectorConstruction.hh"
 
@@ -40,10 +39,12 @@
 #include "G4SystemOfUnits.hh"
 #include "G4SDManager.hh"
 #include "PMTSD.hh"
+#include "G4AnalysisManager.hh"
+#include "G4AccumulableManager.hh"
 
-SteppingActionDMG4::SteppingActionDMG4(DetectorConstruction* myDC, EventAction* myEA, G4int clusterId, G4int procId)
+SteppingActionDMG4::SteppingActionDMG4(DetectorConstruction* myDC, EventAction* myEA, G4int clusterId, G4int procId, RunAction* runAction)
 : eventAction(myEA), G4UserSteppingAction(), fInitialPosition(G4ThreeVector(0., 0., 0.)),
-  fClusterId(clusterId), fProcId(procId)
+  fClusterId(clusterId), fProcId(procId), fRunAction(runAction)
 {
   eventAction->SetSteppingAction(this);
 }
@@ -55,7 +56,7 @@ void SteppingActionDMG4::UserSteppingAction(const G4Step* step)
   G4int trackID = track->GetTrackID();
   //G4double globalTime_ns = step->GetPreStepPoint()->GetGlobalTime() / 1.e-9 * second ;
   if(step->GetPreStepPoint()->GetGlobalTime() > 1*CLHEP::second) return;
-  if(trackID==1) return;
+  //if(trackID==1) return;
   //if (!(step->GetPreStepPoint()->GetPosition().z() > -521*CLHEP::cm)) return;
   //if (!(step->GetTrack()->GetMomentumDirection().z() > 0)) return;
   //if (!(fabs(step->GetTrack()->GetMomentumDirection().x()) < 65*CLHEP::cm)) return;
@@ -63,7 +64,7 @@ void SteppingActionDMG4::UserSteppingAction(const G4Step* step)
 
   G4String particleName = track->GetParticleDefinition()->GetParticleName();
   G4VPhysicalVolume* currentVolume = step->GetPreStepPoint()->GetTouchable()->GetVolume();
-  //G4cout << currentVolume->GetName() << G4endl;
+  //if(step->GetPostStepPoint()->GetTouchable()->GetVolume()->GetName() == "SiPmPV") G4cout << currentVolume->GetName() << particleName << G4endl;
 /*
   if ( ((particleName == "pi0" || particleName == "DMParticleALP") && track->GetTrackStatus() == fStopAndKill) ) {
             const std::vector<const G4Track*>* secondaries = step->GetSecondaryInCurrentStep();
@@ -253,18 +254,39 @@ G4OpBoundaryProcessStatus boundaryStatus = Undefined;
     }
   }
 
-
-  if (!(step->IsFirstStepInVolume())) return;
+if (!( step->IsFirstStepInVolume() || (currentVolume->GetName() == "steel" && step->GetPostStepPoint()->GetTouchableHandle()->GetVolume()->GetName() == "CsIBarPV") )) return;
   G4double Energy = step->GetPreStepPoint()->GetKineticEnergy();
   //if (!(Energy / CLHEP::MeV > 5)) return;
   G4ThreeVector position = step->GetPreStepPoint()->GetPosition();
   G4int stepNumber = track->GetCurrentStepNumber();
   G4ThreeVector direction = track->GetMomentumDirection();
-
   G4String Motherprocess = "p";
 if (track->GetCreatorProcess() != nullptr) {
       Motherprocess = track->GetCreatorProcess()->GetProcessName();
           }
+if(currentVolume->GetName() == "steel" && step->GetPostStepPoint()->GetTouchableHandle()->GetVolume()->GetName() == "CsIBarPV"){
+            G4double posX = step->GetPostStepPoint()->GetPosition().x() / cm;  // Convert position to cm if needed
+        //G4cout << "yep" << G4endl;
+            G4double posY = step->GetPostStepPoint()->GetPosition().y() / cm;
+        int binX = static_cast<int>(std::floor(posX + 5));  // -5 ~ 5 -> 0 ~ 9
+        int binY = static_cast<int>(std::floor(posY + 5));  // -5 ~ 5 -> 0 ~ 9
+  //G4cout << posX << "--->" << binX << G4endl;
+    if (particleName == "e-")
+        fRunAction->StoreKineticEnergy(0, binX, binY, step->GetPostStepPoint()->GetKineticEnergy());
+    else if (particleName == "e+")
+        fRunAction->StoreKineticEnergy(1, binX, binY, step->GetPostStepPoint()->GetKineticEnergy());
+    else if (particleName == "gamma")
+        fRunAction->StoreKineticEnergy(2, binX, binY, step->GetPostStepPoint()->GetKineticEnergy());
+    else if (particleName == "neutron")
+        fRunAction->StoreKineticEnergy(3, binX, binY, step->GetPostStepPoint()->GetKineticEnergy());
+  // Assign local copies back to accumulable
+  std::ofstream outFile("LittleDamsa_"+std::to_string(fClusterId)+"_"+std::to_string(fProcId)+"_"+(currentVolume->GetName())+"_"+particleName+".txt", std::ios_base::app);
+  outFile << Motherprocess << "     " << Energy << "     "
+                << position.x() << "     " << position.y() << "     " << position.z() << "     " << direction.x() << "     " << direction.y() << "     " << direction.z() << "     " << track->GetMomentum().mag()/track->GetTotalEnergy() << "     " << step->GetPreStepPoint()->GetGlobalTime() << "     " << eventAction->GetEventID() << "     " << track->GetVelocity() << std::endl;
+      //outFile << particleName << " production at E = " << Energy << G4endl;
+        outFile.close();
+}
+
 /*
   if( ((step->GetPostStepPoint()->GetProcessDefinedStep() != 0) && ((step->GetPostStepPoint()->GetProcessDefinedStep()->GetProcessName()).find(std::string("DMProcess")) != std::string::npos)) 
   || Motherprocess.find(std::string("DMProcess")) != std::string::npos 
@@ -357,3 +379,5 @@ std::string SteppingActionDMG4::GetBoundaryStatusString(G4OpBoundaryProcessStatu
             return "Unknown";
     }
 }
+
+//std::mutex SteppingActionDMG4::mutex_;

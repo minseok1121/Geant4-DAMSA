@@ -16,12 +16,22 @@
 PrimaryGeneratorAction::PrimaryGeneratorAction(DetectorConstruction* myDC)
 : myDetector(myDC)
 {
+  
   particleGun = new G4ParticleGun(1);
   G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
+  
+  // /*
   G4ParticleDefinition* electron = particleTable->FindParticle("e-");
   particleGun->SetParticleDefinition(electron);
   particleGun->SetParticleMomentumDirection(G4ThreeVector(0.,0.,1.));
-  particleGun->SetParticleEnergy(30000*MeV);
+  particleGun->SetParticleEnergy(300*MeV);
+  // */
+  /*
+  G4ParticleDefinition* gamma = particleTable->FindParticle("gamma");
+  particleGun->SetParticleDefinition(gamma);
+  particleGun->SetParticleMomentumDirection(G4ThreeVector(0.,0.,1.));
+  particleGun->SetParticleEnergy(10*MeV);
+  */
 }
 
 
@@ -34,5 +44,6 @@ PrimaryGeneratorAction::~PrimaryGeneratorAction()
 void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 {
   particleGun->SetParticlePosition(G4ThreeVector(0,0,-26*cm));
+  //particleGun->SetParticlePosition(G4ThreeVector(0,0,0));
   particleGun->GeneratePrimaryVertex(anEvent);
 }

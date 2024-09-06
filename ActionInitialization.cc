@@ -18,14 +18,15 @@ ActionInitialization::~ActionInitialization()
 void ActionInitialization::BuildForMaster() const
 {
     // Implement master thread actions here if needed
-    SetUserAction(new RunAction);
+    SetUserAction(new RunAction(fClusterId, fProcId));
 }
 
 void ActionInitialization::Build() const
 {
     SetUserAction(new PrimaryGeneratorAction(fDetConstruction));
-    EventAction* eventAction = new EventAction(fDetConstruction, fPhysics->GetDarkMatterPointer());
+    RunAction* runAction = new RunAction(fClusterId, fProcId);
+    SetUserAction(runAction);
+    EventAction* eventAction = new EventAction(fDetConstruction, fPhysics->GetDarkMatterPointer(), runAction);
     SetUserAction(eventAction);
-    SetUserAction(new RunAction);
-    SetUserAction(new SteppingActionDMG4(fDetConstruction, eventAction, fClusterId, fProcId));
+    SetUserAction(new SteppingActionDMG4(fDetConstruction, eventAction, fClusterId, fProcId, runAction));
 }
